@@ -1,0 +1,671 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>القرآن الكريم · Quran Study</title>
+<link href="https://fonts.googleapis.com/css2?family=Amiri:ital,wght@0,400;0,700;1,400&family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500&display=swap" rel="stylesheet"/>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.2/babel.min.js"></script>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+
+/* ── DARK THEME (default) ── */
+body.dark{
+  --bg:#0C0B09;--bg1:#131210;--bg2:#1C1A16;--bg3:#252219;
+  --border:#2C2820;--border-mid:#38332A;
+  --text:#EAE2D2;--text-mid:#9C9080;--text-dim:#5A5248;
+  --gold:#C8A95A;--gold-dim:#8A7340;--gold-glow:rgba(200,169,90,0.12);
+  --terra:#B8856A;--green:#6A9E7A;
+  --shadow:rgba(0,0,0,0.5);
+}
+
+/* ── LIGHT THEME ── */
+body.light{
+  --bg:#F5F0E8;--bg1:#EDE7D9;--bg2:#E3DCCC;--bg3:#D9D0BC;
+  --border:#CFC6B2;--border-mid:#BFB49C;
+  --text:#1C1A16;--text-mid:#5A5040;--text-dim:#9C9080;
+  --gold:#8A6A28;--gold-dim:#6A5018;--gold-glow:rgba(138,106,40,0.10);
+  --terra:#8A4A30;--green:#3A6A4A;
+  --shadow:rgba(0,0,0,0.15);
+}
+
+html,body{height:100%;background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;overflow:hidden;transition:background .25s,color .25s;}
+#root{height:100vh;}
+
+.app{display:grid;grid-template-columns:297px 1fr 363px;grid-template-rows:53px 1fr 75px;height:100vh;}
+
+/* TOPBAR */
+.topbar{grid-column:1/-1;background:var(--bg1);border-bottom:1px solid var(--border);display:flex;align-items:center;transition:background .25s,border-color .25s;}
+.topbar-logo{width:297px;border-right:1px solid var(--border);display:flex;align-items:center;gap:11px;padding:0 22px;height:100%;font-family:'Cormorant Garamond',serif;font-size:16px;color:var(--gold);letter-spacing:.06em;flex-shrink:0;}
+.topbar-logo .dot{width:5px;height:5px;border-radius:50%;background:var(--gold);opacity:.6;flex-shrink:0;}
+.topbar-center{flex:1;display:flex;align-items:center;justify-content:center;padding:0 18px;position:relative;}
+.search-wrap{position:relative;width:396px;}
+.search-bar{display:flex;align-items:center;gap:9px;background:var(--bg2);border:1px solid var(--border);border-radius:6px;padding:0 13px;height:33px;transition:background .25s,border-color .25s;}
+.search-bar input{background:none;border:none;outline:none;color:var(--text);font-family:'DM Sans',sans-serif;font-size:13px;width:100%;}
+.search-bar input::placeholder{color:var(--text-dim);}
+.search-icon{color:var(--text-dim);font-size:14px;}
+.topbar-right{width:363px;border-left:1px solid var(--border);display:flex;align-items:center;justify-content:flex-end;padding:0 18px;gap:5px;height:100%;flex-shrink:0;}
+.topbar-btn{background:none;border:none;color:var(--text-mid);cursor:pointer;font-size:11px;letter-spacing:.1em;padding:6px 11px;border-radius:4px;font-family:'DM Sans',sans-serif;transition:all .15s;text-transform:uppercase;}
+.topbar-btn:hover{color:var(--text);background:var(--bg2);}
+.topbar-btn.active{color:var(--gold);}
+.settings-btn{background:none;border:1px solid var(--border);color:var(--text-dim);cursor:pointer;font-size:14px;padding:5px 9px;border-radius:4px;transition:all .15s;line-height:1;}
+.settings-btn:hover{color:var(--gold);border-color:var(--gold-dim);}
+
+/* SIDEBAR */
+.sidebar{grid-row:2;background:var(--bg1);border-right:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden;transition:background .25s,border-color .25s;}
+.sidebar-header{padding:15px 20px 13px;border-bottom:1px solid var(--border);flex-shrink:0;}
+.sidebar-label{font-size:10px;letter-spacing:.18em;color:var(--text-dim);text-transform:uppercase;font-weight:500;}
+.surah-list{overflow-y:auto;flex:1;padding:4px 0;}
+.surah-list::-webkit-scrollbar{width:3px;}
+.surah-list::-webkit-scrollbar-thumb{background:var(--border-mid);border-radius:2px;}
+.surah-item{display:flex;align-items:center;padding:9px 20px;cursor:pointer;transition:background .12s;gap:11px;border-left:2px solid transparent;}
+.surah-item:hover{background:var(--bg2);}
+.surah-item.active{background:var(--bg3);border-left-color:var(--gold);}
+.surah-num{font-size:11px;color:var(--text-dim);width:20px;text-align:right;flex-shrink:0;}
+.surah-info{flex:1;min-width:0;}
+.surah-name{font-size:13px;color:var(--text);}
+.surah-sub{font-size:11px;color:var(--text-dim);margin-top:1px;}
+.surah-arabic-name{font-family:'Amiri',serif;font-size:15px;color:var(--text-mid);direction:rtl;flex-shrink:0;}
+.surah-item.active .surah-arabic-name{color:var(--gold);}
+
+/* MAIN */
+.main{grid-row:2;overflow-y:auto;background:var(--bg);scroll-behavior:smooth;transition:background .25s;}
+.main::-webkit-scrollbar{width:4px;}
+.main::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px;}
+.surah-header{padding:48px 62px 31px;text-align:center;border-bottom:1px solid var(--border);background:linear-gradient(180deg,var(--bg1) 0%,var(--bg) 100%);transition:background .25s;}
+.surah-type-badge{display:inline-block;font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:var(--text-dim);border:1px solid var(--border);border-radius:2px;padding:3px 9px;margin-bottom:15px;}
+.surah-title-ar{font-family:'Amiri',serif;font-size:40px;color:var(--text);direction:rtl;line-height:1.4;margin-bottom:9px;}
+.surah-title-en{font-family:'Cormorant Garamond',serif;font-size:22px;font-weight:300;color:var(--text-mid);letter-spacing:.04em;margin-bottom:3px;}
+.surah-meaning{font-size:12px;color:var(--text-dim);letter-spacing:.06em;font-style:italic;font-family:'Cormorant Garamond',serif;}
+.surah-stats{display:flex;gap:26px;justify-content:center;margin-top:20px;}
+.stat-val{font-size:22px;color:var(--gold);font-family:'Cormorant Garamond',serif;font-weight:300;text-align:center;}
+.stat-lbl{font-size:10px;color:var(--text-dim);letter-spacing:.12em;text-transform:uppercase;text-align:center;}
+.bismillah{text-align:center;padding:31px 62px 15px;font-family:'Amiri',serif;font-size:31px;color:var(--text-mid);direction:rtl;border-bottom:1px solid var(--border);line-height:1.8;}
+.verses-container{padding:0 62px 53px;}
+.verse-block{padding:26px 0;border-bottom:1px solid var(--border);cursor:pointer;transition:background .15s;}
+.verse-block:hover{background:rgba(200,169,90,.03);}
+.verse-block.vactive{background:rgba(200,169,90,.05);}
+.verse-block.vplaying{background:rgba(200,169,90,.07);}
+.verse-num-row{display:flex;align-items:center;gap:11px;margin-bottom:18px;}
+.verse-num{width:29px;height:29px;border-radius:50%;border:1px solid var(--border-mid);display:flex;align-items:center;justify-content:center;font-size:11px;color:var(--text-dim);flex-shrink:0;}
+.verse-block.vactive .verse-num,.verse-block.vplaying .verse-num{border-color:var(--gold-dim);color:var(--gold);background:var(--gold-glow);}
+.verse-actions{display:flex;gap:6px;opacity:0;transition:opacity .15s;}
+.verse-block:hover .verse-actions{opacity:1;}
+.vbtn{background:var(--bg2);border:1px solid var(--border);color:var(--text-dim);border-radius:4px;padding:4px 9px;font-size:10px;cursor:pointer;font-family:'DM Sans',sans-serif;letter-spacing:.08em;text-transform:uppercase;transition:all .12s;}
+.vbtn:hover{color:var(--gold);border-color:var(--gold-dim);background:var(--gold-glow);}
+.vbtn.bmarked{color:var(--gold);border-color:var(--gold-dim);opacity:1!important;}
+.note-dot{margin-left:auto;width:6px;height:6px;border-radius:50%;background:var(--gold);opacity:.6;}
+.verse-arabic{font-family:'Amiri',serif;font-size:31px;line-height:2.2;direction:rtl;text-align:right;color:var(--text);margin-bottom:18px;}
+.verse-block.vplaying .verse-arabic{color:var(--gold);}
+.verse-translation{font-family:'Cormorant Garamond',serif;font-size:20px;line-height:1.85;color:var(--text-mid);font-weight:300;padding-left:40px;border-left:2px solid var(--border);font-style:italic;}
+.verse-block.vactive .verse-translation{color:var(--text);border-left-color:var(--gold-dim);}
+.loading-state{display:flex;flex-direction:column;align-items:center;justify-content:center;height:60vh;gap:15px;}
+.loader{width:31px;height:31px;border:2px solid var(--border);border-top-color:var(--gold);border-radius:50%;animation:spin .8s linear infinite;}
+@keyframes spin{to{transform:rotate(360deg);}}
+.loading-text{font-size:12px;color:var(--text-dim);letter-spacing:.1em;}
+.empty-state{display:flex;flex-direction:column;align-items:center;justify-content:center;height:60vh;gap:13px;text-align:center;padding:44px;}
+.empty-ar{font-family:'Amiri',serif;font-size:48px;color:var(--border-mid);direction:rtl;}
+.empty-text{font-size:14px;color:var(--text-dim);line-height:1.7;}
+
+/* PANEL */
+.panel{grid-row:2;background:var(--bg1);border-left:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden;transition:background .25s,border-color .25s;}
+.panel-tabs{display:flex;border-bottom:1px solid var(--border);flex-shrink:0;}
+.panel-tab{flex:1;padding:13px 0;text-align:center;font-size:10px;letter-spacing:.12em;text-transform:uppercase;cursor:pointer;color:var(--text-dim);border:none;border-bottom:2px solid transparent;background:none;font-family:'DM Sans',sans-serif;transition:all .12s;}
+.panel-tab:hover{color:var(--text-mid);}
+.panel-tab.active{color:var(--gold);border-bottom-color:var(--gold);}
+.panel-content{flex:1;overflow-y:auto;padding:20px;}
+.panel-content::-webkit-scrollbar{width:3px;}
+.panel-content::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px;}
+.panel-empty{display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;gap:11px;text-align:center;padding:26px;}
+.panel-empty-icon{font-size:31px;opacity:.2;}
+.panel-empty-text{font-size:13px;color:var(--text-dim);line-height:1.7;}
+
+/* TAFSIR PANEL */
+.tafsir-ref-label{font-size:10px;color:var(--text-dim);letter-spacing:.12em;text-transform:uppercase;margin-bottom:9px;}
+.tafsir-verse-ref{font-family:'Amiri',serif;font-size:21px;direction:rtl;text-align:right;color:var(--text);margin-bottom:9px;line-height:1.8;}
+.tafsir-tr{font-size:14px;color:var(--text-dim);font-family:'Cormorant Garamond',serif;font-style:italic;margin-bottom:15px;line-height:1.75;}
+.tafsir-divider{height:1px;background:var(--border);margin:15px 0;}
+.tafsir-source-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:15px;}
+.tafsir-source-badge{display:inline-flex;align-items:center;gap:5px;font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--terra);border:1px solid rgba(184,133,106,.3);border-radius:3px;padding:3px 9px;}
+.tafsir-edition-select{background:var(--bg2);border:1px solid var(--border);color:var(--text-mid);font-family:'DM Sans',sans-serif;font-size:10px;padding:3px 7px;border-radius:3px;outline:none;cursor:pointer;letter-spacing:.04em;}
+.tafsir-edition-select option{background:var(--bg2);}
+.tafsir-text{font-family:'Cormorant Garamond',serif;font-size:15px;line-height:1.95;color:var(--text-mid);font-weight:300;}
+.tafsir-text p{margin-bottom:13px;}
+.tafsir-loading{display:flex;flex-direction:column;gap:9px;margin-top:9px;}
+.skeleton{height:12px;background:var(--bg3);border-radius:2px;animation:pulse 1.4s ease-in-out infinite;}
+@keyframes pulse{0%,100%{opacity:.4}50%{opacity:.8}}
+.error-strip{background:rgba(184,133,106,.1);border:1px solid rgba(184,133,106,.25);border-radius:4px;padding:9px 13px;font-size:12px;color:var(--terra);margin-bottom:15px;line-height:1.5;}
+
+/* NOTES */
+.notes-lbl{font-size:10px;color:var(--text-dim);letter-spacing:.12em;text-transform:uppercase;margin-bottom:11px;}
+.notes-area{width:100%;background:var(--bg2);border:1px solid var(--border);border-radius:6px;color:var(--text);font-family:'Cormorant Garamond',serif;font-size:15px;line-height:1.8;padding:11px 13px;resize:none;outline:none;min-height:132px;transition:border-color .15s;}
+.notes-area:focus{border-color:var(--border-mid);}
+.notes-area::placeholder{color:var(--text-dim);font-style:italic;}
+.notes-save-btn{margin-top:9px;width:100%;background:var(--bg3);border:1px solid var(--border);color:var(--text-mid);padding:8px;border-radius:4px;cursor:pointer;font-size:11px;letter-spacing:.1em;font-family:'DM Sans',sans-serif;transition:all .12s;text-transform:uppercase;}
+.notes-save-btn:hover{color:var(--gold);border-color:var(--gold-dim);background:var(--gold-glow);}
+.saved-msg{font-size:11px;color:var(--green);text-align:center;margin-top:5px;transition:opacity .3s;}
+.note-entry{background:var(--bg2);border:1px solid var(--border);border-radius:4px;padding:10px 12px;margin-bottom:8px;}
+.note-entry-ref{font-size:10px;color:var(--gold);letter-spacing:.08em;margin-bottom:3px;}
+.note-entry-text{font-size:14px;color:var(--text-mid);font-family:'Cormorant Garamond',serif;line-height:1.6;}
+
+/* BOOKMARKS */
+.bmark-item{padding:12px 0;border-bottom:1px solid var(--border);cursor:pointer;transition:padding .12s;}
+.bmark-item:hover{padding-left:6px;}
+.bmark-ref{font-size:10px;color:var(--gold);letter-spacing:.1em;text-transform:uppercase;margin-bottom:5px;}
+.bmark-ar{font-family:'Amiri',serif;font-size:16px;direction:rtl;text-align:right;color:var(--text);line-height:1.6;margin-bottom:3px;}
+.bmark-tr{font-size:12px;color:var(--text-dim);font-family:'Cormorant Garamond',serif;font-style:italic;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+
+/* SEARCH DROPDOWN */
+.search-dropdown{position:absolute;top:33px;left:0;right:0;background:var(--bg2);border:1px solid var(--border-mid);border-top:none;border-radius:0 0 8px 8px;max-height:340px;overflow-y:auto;z-index:200;box-shadow:0 20px 40px var(--shadow);}
+.search-count{padding:8px 15px;font-size:10px;color:var(--text-dim);letter-spacing:.08em;border-bottom:1px solid var(--border);}
+.search-item{padding:11px 15px;border-bottom:1px solid var(--border);cursor:pointer;transition:background .1s;}
+.search-item:hover{background:var(--bg3);}
+.search-item-ref{font-size:10px;color:var(--gold);letter-spacing:.1em;margin-bottom:3px;}
+.search-item-ar{font-family:'Amiri',serif;font-size:15px;direction:rtl;text-align:right;color:var(--text);line-height:1.6;margin-bottom:2px;}
+.search-item-tr{font-size:12px;color:var(--text-dim);line-height:1.45;}
+
+/* PLAYER */
+.player{grid-column:1/-1;grid-row:3;background:var(--bg1);border-top:1px solid var(--border);display:flex;align-items:center;transition:background .25s,border-color .25s;}
+.player-left{width:297px;border-right:1px solid var(--border);padding:0 20px;height:100%;display:flex;flex-direction:column;justify-content:center;gap:3px;flex-shrink:0;}
+.player-surah{font-size:12px;color:var(--text);}
+.player-reciter{font-size:11px;color:var(--text-dim);}
+
+/* Player center — controls + progress + loop + volume all inline */
+.player-center{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:7px;padding:0 22px;}
+.player-controls-row{display:flex;align-items:center;gap:20px;}
+.ctrl-btn{background:none;border:none;color:var(--text-dim);cursor:pointer;font-size:15px;transition:color .12s;padding:4px;}
+.ctrl-btn:hover{color:var(--text);}
+.play-btn{width:37px;height:37px;border-radius:50%;background:var(--gold);border:none;color:var(--bg);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:13px;transition:all .15s;}
+.play-btn:hover{filter:brightness(1.1);transform:scale(1.05);}
+.play-btn:disabled{background:var(--bg3);color:var(--text-dim);cursor:default;transform:none;}
+.loop-btn-sm{background:none;border:1px solid var(--border);color:var(--text-dim);cursor:pointer;font-size:11px;letter-spacing:.04em;padding:4px 9px;border-radius:3px;font-family:'DM Sans',sans-serif;transition:all .12s;line-height:1.4;}
+.loop-btn-sm:hover{color:var(--text);border-color:var(--border-mid);}
+.loop-btn-sm.active{color:var(--gold);border-color:var(--gold-dim);background:var(--gold-glow);}
+.vol-row{display:flex;align-items:center;gap:7px;}
+.vol-icon{font-size:13px;color:var(--text-dim);}
+.progress-row{display:flex;align-items:center;gap:10px;width:100%;max-width:560px;}
+.time-lbl{font-size:11px;color:var(--text-dim);width:33px;text-align:center;}
+.progress-track{flex:1;height:3px;background:var(--bg3);border-radius:2px;cursor:pointer;}
+.progress-fill{height:100%;background:var(--gold);border-radius:2px;pointer-events:none;}
+
+/* player right — empty balance */
+.player-right{width:297px;border-left:1px solid var(--border);flex-shrink:0;}
+
+/* topbar settings — horizontal strip right of search */
+.topbar-settings{display:flex;align-items:center;gap:6px;padding:0 14px;border-left:1px solid var(--border);height:100%;flex-shrink:0;}
+.ts-label{font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:var(--text-dim);white-space:nowrap;}
+.ts-select{background:var(--bg2);border:1px solid var(--border);color:var(--text);font-family:'DM Sans',sans-serif;font-size:11px;padding:3px 7px;border-radius:4px;outline:none;cursor:pointer;max-width:140px;}
+.ts-select option{background:var(--bg2);}
+.ts-sep{width:1px;height:18px;background:var(--border);flex-shrink:0;}
+.theme-toggle{display:flex;background:var(--bg3);border:1px solid var(--border);border-radius:4px;overflow:hidden;}
+.theme-opt{padding:3px 10px;font-size:10px;letter-spacing:.06em;text-transform:uppercase;cursor:pointer;font-family:'DM Sans',sans-serif;color:var(--text-dim);border:none;background:none;transition:all .15s;white-space:nowrap;}
+.theme-opt.active{background:var(--gold);color:var(--bg);font-weight:500;}
+.theme-opt:not(.active):hover{color:var(--text);}
+
+input[type=range]{-webkit-appearance:none;height:3px;background:var(--bg3);border-radius:2px;outline:none;width:72px;cursor:pointer;}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:11px;height:11px;border-radius:50%;background:var(--text-mid);cursor:pointer;}
+</style>
+</head>
+<body class="dark">
+<div id="root"></div>
+<script type="text/babel">
+const {useState,useEffect,useRef,useCallback} = React;
+
+const RECITERS = [
+  {id:"Alafasy_128kbps",                 name:"Mishary Alafasy"},
+  {id:"Abdurrahmaan_As-Sudais_192kbps",  name:"Abdurrahman As-Sudais"},
+  {id:"MaherAlMuaiqly128kbps",              name:"Maher Al Muaiqly"},
+  {id:"Husary_128kbps",                  name:"Mahmoud Al-Husary"},
+  {id:"Minshawy_Murattal_128kbps",       name:"Mohamed Al-Minshawi"},
+];
+
+const TAFSIR_EDITIONS = [
+  {slug:"en-tafisr-ibn-kathir",    label:"Ibn Kathir (English)"},
+  {slug:"en-tafsir-maarif-ul-quran", label:"Maarif-ul-Quran"},
+  {slug:"en-al-jalalayn",          label:"Al-Jalalayn"},
+  {slug:"en-tafsir-ibn-abbas",     label:"Ibn Abbas"},
+  {slug:"ar-tafsir-ibn-kathir",    label:"ابن كثير (عربي)"},
+  {slug:"ar-tafseer-al-saddi",     label:"السعدي"},
+];
+
+function fmtTime(s){
+  if(!s||isNaN(s)) return "0:00";
+  return `${Math.floor(s/60)}:${String(Math.floor(s%60)).padStart(2,"0")}`;
+}
+
+// everyayah.com: format is {surah3}{verse3}.mp3 — works for all reciters
+function audioUrl(surahNum, verseNum, reciterId){
+  return `https://everyayah.com/data/${reciterId}/${String(surahNum).padStart(3,"0")}${String(verseNum).padStart(3,"0")}.mp3`;
+}
+
+/* ── localStorage helpers ─────────────────────────────────────────── */
+const LS = {
+  get:(k,fb)=>{ try{ const v=localStorage.getItem(k); return v!=null?JSON.parse(v):fb; }catch{return fb;} },
+  set:(k,v)=>{ try{ localStorage.setItem(k,JSON.stringify(v)); }catch{} },
+};
+
+/* ── MAIN APP ────────────────────────────────────────────────────────────── */
+function App(){
+  const [surahs,        setSurahs]        = useState([]);
+  const [activeSurah,   setActiveSurah]   = useState(null);
+  const [verses,        setVerses]        = useState([]);
+  const [translations,  setTranslations]  = useState([]);
+  const [loading,       setLoading]       = useState(false);
+  const [selectedVerse, setSelectedVerse] = useState(null);
+  const [panelTab,      setPanelTab]      = useState("tafsir");
+  const [tafsir,        setTafsir]        = useState(null);
+  const [tafsirLoading, setTafsirLoading] = useState(false);
+  const [tafsirError,   setTafsirError]   = useState(null);
+  const [tafsirEdition, setTafsirEdition] = useState(()=>LS.get("q_tafsirEdition","en-tafisr-ibn-kathir"));
+  const [notes,         setNotes]         = useState(()=>LS.get("q_notes",{}));
+  const [noteInput,     setNoteInput]     = useState("");
+  const [noteSaved,     setNoteSaved]     = useState(false);
+  const [bookmarks,     setBookmarks]     = useState(()=>LS.get("q_bookmarks",[]));
+  const [reciter,       setReciter]       = useState(()=>LS.get("q_reciter",RECITERS[0]));
+  const [playing,       setPlaying]       = useState(false);
+  const [currentAyah,   setCurrentAyah]   = useState(null);
+  const [audioProgress, setAudioProgress] = useState(0);
+  const [audioDuration, setAudioDuration] = useState(0);
+  const [volume,        setVolume]        = useState(0.85);
+  const [loopVerse,     setLoopVerse]     = useState(()=>LS.get("q_loop",false));
+  const [searchQuery,   setSearchQuery]   = useState("");
+  const [searchResults, setSearchResults] = useState([]);
+  const [showSearch,    setShowSearch]    = useState(false);
+  const [theme,         setTheme]         = useState(()=>{ const t=LS.get("q_theme","dark"); document.body.className=t; return t; });
+
+  const audioRef  = useRef(null);
+  const mainRef   = useRef(null);
+  const verseRefs = useRef({});
+
+  // Apply theme to body
+  const toggleTheme = (t)=>{ setTheme(t); document.body.className=t; LS.set("q_theme",t); };
+
+  // ── Persist state to localStorage ─────────────────────────────────────
+  useEffect(()=>LS.set("q_bookmarks",   bookmarks),    [bookmarks]);
+  useEffect(()=>LS.set("q_notes",       notes),        [notes]);
+  useEffect(()=>LS.set("q_reciter",     reciter),      [reciter]);
+  useEffect(()=>LS.set("q_tafsirEdition",tafsirEdition),[tafsirEdition]);
+  useEffect(()=>LS.set("q_loop",        loopVerse),    [loopVerse]);
+  useEffect(()=>{ if(activeSurah) LS.set("q_lastSurah", activeSurah.number); },[activeSurah]);
+
+  // Load surah list + auto-open Al-Fatiha
+  useEffect(()=>{
+    fetch("https://api.alquran.cloud/v1/surah")
+      .then(r=>r.json())
+      .then(d=>{
+        const list = d.data||[];
+        setSurahs(list);
+        const lastNum = LS.get("q_lastSurah", 1);
+        const target  = list.find(s=>s.number===lastNum) || list[0];
+        if(target) loadSurah(target);
+      })
+      .catch(()=>{});
+  },[]);
+
+  // Load surah content
+  const loadSurah = useCallback(async(surah)=>{
+    setActiveSurah(surah); setLoading(true);
+    setVerses([]); setTranslations([]);
+    setSelectedVerse(null); setTafsir(null); setTafsirError(null);
+    try{
+      const res  = await fetch(`https://api.alquran.cloud/v1/surah/${surah.number}/editions/quran-uthmani,en.sahih`);
+      const data = await res.json();
+      if(data.data){ setVerses(data.data[0].ayahs); setTranslations(data.data[1].ayahs); }
+    }catch(e){}
+    setLoading(false);
+    if(mainRef.current) mainRef.current.scrollTop=0;
+  },[]);
+
+  // Select verse
+  const selectVerse = useCallback((verse,idx)=>{
+    setSelectedVerse({...verse,idx});
+    setTafsir(null); setTafsirError(null);
+    setNoteInput(notes[`${activeSurah?.number}:${verse.numberInSurah}`]||"");
+  },[notes,activeSurah]);
+
+  // Load tafsir from spa5k/tafsir_api via jsDelivr CDN
+  useEffect(()=>{
+    if(!selectedVerse||panelTab!=="tafsir"||tafsir) return;
+    setTafsirLoading(true); setTafsirError(null);
+    const sNum = activeSurah?.number;
+    const vNum = selectedVerse.numberInSurah;
+    const url  = `https://cdn.jsdelivr.net/gh/spa5k/tafsir_api@main/tafsir/${tafsirEdition}/${sNum}/${vNum}.json`;
+    fetch(url)
+      .then(r=>{ if(!r.ok) throw new Error(`HTTP ${r.status}`); return r.json(); })
+      .then(d=>{
+        // Response shape: { text: "..." } or { ayahs: [...] } depending on edition
+        const text = d.text || (Array.isArray(d.ayahs) ? d.ayahs[0]?.text : null);
+        if(text) setTafsir(text);
+        else setTafsirError("No tafsir text found for this verse.");
+        setTafsirLoading(false);
+      })
+      .catch(err=>{
+        setTafsirError(`Could not load tafsir: ${err.message}`);
+        setTafsirLoading(false);
+      });
+  },[selectedVerse, panelTab, tafsirEdition]);
+
+  // Reset tafsir when edition changes
+  useEffect(()=>{ setTafsir(null); setTafsirError(null); },[tafsirEdition]);
+
+  // Volume
+  useEffect(()=>{ if(audioRef.current) audioRef.current.volume=volume; },[volume]);
+
+  // ── AUDIO: play a specific verse (always starts fresh) ─────────────────
+  const playVerse = useCallback((verse,idx)=>{
+    const el=audioRef.current; if(!el) return;
+    el.pause();
+    el.src=audioUrl(activeSurah.number, verse.numberInSurah, reciter.id);
+    el.play().catch(e=>{ console.warn("Play failed:",e.message); setPlaying(false); });
+    setPlaying(true);
+    setCurrentAyah({...verse,idx});
+    setAudioProgress(0); setAudioDuration(0);
+  },[reciter]);
+
+  // ── AUDIO: toggle pause/resume for currently playing verse ─────────────
+  const togglePlayPause = useCallback(()=>{
+    const el=audioRef.current; if(!el) return;
+    if(playing){ el.pause(); }
+    else{ el.play().catch(()=>{}); }
+  },[playing]);
+
+  // Bottom player play button: toggle if something loaded, else start first verse
+  const togglePlayerPlay = ()=>{
+    if(currentAyah) togglePlayPause();
+    else if(verses.length>0) playVerse(verses[0],0);
+  };
+
+  // Verse-level play button: if THIS verse is current → toggle pause/resume; else start it
+  const handleVersePlay = (verse,idx)=>{
+    if(currentAyah?.idx===idx){
+      togglePlayPause();
+    } else {
+      playVerse(verse,idx);
+    }
+  };
+
+  const prevVerse = ()=>{ if(currentAyah?.idx>0) playVerse(verses[currentAyah.idx-1],currentAyah.idx-1); };
+  const nextVerse = ()=>{ const i=currentAyah?currentAyah.idx:-1; if(i<verses.length-1) playVerse(verses[i+1],i+1); };
+  const handleEnded = ()=>{ if(loopVerse) audioRef.current.play().catch(()=>{}); else nextVerse(); };
+
+  const handleProgressClick = (e)=>{
+    const el=audioRef.current; if(!el||!audioDuration) return;
+    const r=e.currentTarget.getBoundingClientRect();
+    el.currentTime=((e.clientX-r.left)/r.width)*audioDuration;
+  };
+
+  // Bookmarks
+  const toggleBookmark = (verse,idx)=>{
+    const key=`${activeSurah?.number}:${verse.numberInSurah}`;
+    if(bookmarks.find(b=>b.key===key)) setBookmarks(b=>b.filter(x=>x.key!==key));
+    else setBookmarks(b=>[{key,surahName:activeSurah?.englishName,surahNum:activeSurah?.number,
+      verseNum:verse.numberInSurah,arabic:verse.text,translation:translations[idx]?.text||""},...b]);
+  };
+  const isBookmarked = v=>bookmarks.some(b=>b.key===`${activeSurah?.number}:${v.numberInSurah}`);
+
+  // Notes
+  const saveNote = ()=>{
+    if(!selectedVerse||!noteInput.trim()) return;
+    setNotes(n=>({...n,[`${activeSurah?.number}:${selectedVerse.numberInSurah}`]:noteInput}));
+    setNoteSaved(true); setTimeout(()=>setNoteSaved(false),2000);
+  };
+
+  // Search
+  useEffect(()=>{
+    if(searchQuery.length<3||!translations.length){ setSearchResults([]); setShowSearch(false); return; }
+    const q=searchQuery.toLowerCase();
+    const results=[];
+    translations.forEach((tr,i)=>{
+      if(tr.text.toLowerCase().includes(q))
+        results.push({idx:i,verseNum:verses[i]?.numberInSurah,arabic:verses[i]?.text,translation:tr.text});
+    });
+    setSearchResults(results.slice(0,15)); setShowSearch(results.length>0);
+  },[searchQuery,translations]);
+
+  const scrollToVerse = idx=>verseRefs.current[idx]?.scrollIntoView({behavior:"smooth",block:"center"});
+  const noteEntries = Object.entries(notes).filter(([,v])=>v.trim());
+  const editionLabel = TAFSIR_EDITIONS.find(e=>e.slug===tafsirEdition)?.label||tafsirEdition;
+
+  /* ─────────────────────────────────────────────────────────────────────── */
+  return(
+    <div className="app">
+      <audio ref={audioRef}
+        onTimeUpdate={()=>audioRef.current&&setAudioProgress(audioRef.current.currentTime)}
+        onDurationChange={()=>audioRef.current&&setAudioDuration(audioRef.current.duration)}
+        onEnded={handleEnded}
+        onPlay={()=>setPlaying(true)}
+        onPause={()=>setPlaying(false)}
+        onError={()=>{ console.warn("Audio error"); setPlaying(false); }}
+      />
+
+      {/* TOPBAR */}
+      <div className="topbar">
+        <div className="topbar-logo"><div className="dot"/><span>القرآن الكريم</span></div>
+        <div className="topbar-center">
+          <div className="search-wrap">
+            <div className="search-bar">
+              <span className="search-icon">⌕</span>
+              <input placeholder="Search translation… (3+ chars)"
+                value={searchQuery} onChange={e=>setSearchQuery(e.target.value)}
+                onFocus={()=>searchResults.length>0&&setShowSearch(true)}
+                onBlur={()=>setTimeout(()=>setShowSearch(false),200)}
+              />
+              {searchQuery&&<span style={{color:"var(--text-dim)",cursor:"pointer",fontSize:15}} onClick={()=>{setSearchQuery("");setShowSearch(false);}}>×</span>}
+            </div>
+            {showSearch&&(
+              <div className="search-dropdown">
+                <div className="search-count">{searchResults.length} result{searchResults.length!==1?"s":""} in {activeSurah?.englishName}</div>
+                {searchResults.map((r,i)=>(
+                  <div key={i} className="search-item" onClick={()=>{selectVerse(verses[r.idx],r.idx);scrollToVerse(r.idx);setPanelTab("tafsir");setShowSearch(false);setSearchQuery("");}}>
+                    <div className="search-item-ref">{activeSurah?.number}:{r.verseNum}</div>
+                    <div className="search-item-ar">{r.arabic?.substring(0,55)}…</div>
+                    <div className="search-item-tr">{r.translation.substring(0,110)}…</div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Settings strip — horizontal, right of search */}
+        <div className="topbar-settings">
+          <span className="ts-label">Theme</span>
+          <div className="theme-toggle">
+            <button className={`theme-opt ${theme==="dark"?"active":""}`} onClick={()=>toggleTheme("dark")}>Dark</button>
+            <button className={`theme-opt ${theme==="light"?"active":""}`} onClick={()=>toggleTheme("light")}>Light</button>
+          </div>
+          <div className="ts-sep"/>
+          <span className="ts-label">Tafsir</span>
+          <select className="ts-select" value={tafsirEdition} onChange={e=>setTafsirEdition(e.target.value)}>
+            {TAFSIR_EDITIONS.map(ed=><option key={ed.slug} value={ed.slug}>{ed.label}</option>)}
+          </select>
+          <div className="ts-sep"/>
+          <span className="ts-label">Reciter</span>
+          <select className="ts-select" value={reciter.id} onChange={e=>setReciter(RECITERS.find(r=>r.id===e.target.value))}>
+            {RECITERS.map(r=><option key={r.id} value={r.id}>{r.name}</option>)}
+          </select>
+        </div>
+        <div className="topbar-right">
+          <button className={`topbar-btn ${panelTab==="tafsir"?"active":""}`} onClick={()=>setPanelTab("tafsir")}>Tafsir</button>
+          <button className={`topbar-btn ${panelTab==="notes"?"active":""}`} onClick={()=>setPanelTab("notes")}>Notes</button>
+          <button className={`topbar-btn ${panelTab==="bookmarks"?"active":""}`} onClick={()=>setPanelTab("bookmarks")}>Bookmarks{bookmarks.length>0?` (${bookmarks.length})`:""}</button>
+        </div>
+      </div>
+
+      {/* SIDEBAR */}
+      <div className="sidebar">
+        <div className="sidebar-header"><div className="sidebar-label">{surahs.length>0?`${surahs.length} Surahs`:"Loading…"}</div></div>
+        <div className="surah-list">
+          {surahs.map(s=>(
+            <div key={s.number} className={`surah-item ${activeSurah?.number===s.number?"active":""}`} onClick={()=>loadSurah(s)}>
+              <div className="surah-num">{s.number}</div>
+              <div className="surah-info">
+                <div className="surah-name">{s.englishName}</div>
+                <div className="surah-sub">{s.englishNameTranslation} · {s.numberOfAyahs} āyāt</div>
+              </div>
+              <div className="surah-arabic-name">{s.name}</div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* MAIN */}
+      <div className="main" ref={mainRef}>
+        {!activeSurah&&<div className="empty-state"><div className="empty-ar">بِسْمِ ٱللَّهِ</div><div className="empty-text">Select a surah from the left to begin</div></div>}
+        {activeSurah&&loading&&<div className="loading-state"><div className="loader"/><div className="loading-text">Loading {activeSurah.englishName}…</div></div>}
+        {activeSurah&&!loading&&verses.length>0&&(
+          <>
+            <div className="surah-header">
+              <div className="surah-type-badge">{activeSurah.revelationType} · Surah {activeSurah.number}</div>
+              <div className="surah-title-ar">{activeSurah.name}</div>
+              <div className="surah-title-en">{activeSurah.englishName}</div>
+              <div className="surah-meaning">{activeSurah.englishNameTranslation}</div>
+              <div className="surah-stats">
+                <div><div className="stat-val">{activeSurah.numberOfAyahs}</div><div className="stat-lbl">Āyāt</div></div>
+                <div><div className="stat-val">{activeSurah.revelationType==="Meccan"?"مَكِّي":"مَدَنِي"}</div><div className="stat-lbl">Revelation</div></div>
+              </div>
+            </div>
+            {activeSurah.number!==9&&<div className="bismillah">بِسْمِ ٱللَّهِ ٱلرَّحْمَٰنِ ٱلرَّحِيمِ</div>}
+            <div className="verses-container">
+              {verses.map((v,idx)=>(
+                <div key={v.number} ref={el=>verseRefs.current[idx]=el}
+                  className={`verse-block ${selectedVerse?.idx===idx?"vactive":""} ${currentAyah?.idx===idx?"vplaying":""}`}
+                  onClick={()=>{selectVerse(v,idx);setPanelTab("tafsir");}}>
+                  <div className="verse-num-row">
+                    <div className="verse-num">{v.numberInSurah}</div>
+                    <div className="verse-actions">
+                      <button className="vbtn" onClick={e=>{e.stopPropagation();handleVersePlay(v,idx);}}>
+                        {currentAyah?.idx===idx && playing ? "⏸ Pause" : "▶ Play"}
+                      </button>
+                      <button className={`vbtn ${isBookmarked(v)?"bmarked":""}`} onClick={e=>{e.stopPropagation();toggleBookmark(v,idx);}}>
+                        {isBookmarked(v)?"★ Saved":"☆ Save"}
+                      </button>
+                      <button className="vbtn" onClick={e=>{e.stopPropagation();selectVerse(v,idx);setPanelTab("notes");}}>✎ Note</button>
+                    </div>
+                    {notes[`${activeSurah.number}:${v.numberInSurah}`]&&<div className="note-dot"/>}
+                  </div>
+                  <div className="verse-arabic">{v.text}</div>
+                  <div className="verse-translation">{translations[idx]?.text}</div>
+                </div>
+              ))}
+            </div>
+          </>
+        )}
+      </div>
+
+      {/* PANEL */}
+      <div className="panel">
+        <div className="panel-tabs">
+          <button className={`panel-tab ${panelTab==="tafsir"?"active":""}`} onClick={()=>setPanelTab("tafsir")}>Tafsir</button>
+          <button className={`panel-tab ${panelTab==="notes"?"active":""}`} onClick={()=>setPanelTab("notes")}>Notes</button>
+          <button className={`panel-tab ${panelTab==="bookmarks"?"active":""}`} onClick={()=>setPanelTab("bookmarks")}>Saved</button>
+        </div>
+        <div className="panel-content">
+
+          {panelTab==="tafsir"&&(!selectedVerse?(
+            <div className="panel-empty"><div className="panel-empty-icon">📖</div><div className="panel-empty-text">Click any verse to load tafsir commentary</div></div>
+          ):(
+            <>
+              <div className="tafsir-ref-label">{activeSurah?.englishName} · {activeSurah?.number}:{selectedVerse.numberInSurah}</div>
+              <div className="tafsir-verse-ref">{selectedVerse.text}</div>
+              <div className="tafsir-tr">{translations[selectedVerse.idx]?.text}</div>
+              <div className="tafsir-divider"/>
+              <div className="tafsir-source-row">
+                <div className="tafsir-source-badge">📚 {editionLabel}</div>
+                <select className="tafsir-edition-select" value={tafsirEdition} onChange={e=>setTafsirEdition(e.target.value)}>
+                  {TAFSIR_EDITIONS.map(ed=><option key={ed.slug} value={ed.slug}>{ed.label}</option>)}
+                </select>
+              </div>
+              {tafsirLoading&&<div className="tafsir-loading">{[100,85,92,70,88,60,78,90,65,82].map((w,i)=><div key={i} className="skeleton" style={{width:`${w}%`,animationDelay:`${i*.1}s`}}/>)}</div>}
+              {tafsirError&&<div className="error-strip">{tafsirError}</div>}
+              {tafsir&&<div className="tafsir-text">{tafsir.split("\n").filter(p=>p.trim()).map((p,i)=><p key={i}>{p}</p>)}</div>}
+            </>
+          ))}
+
+          {panelTab==="notes"&&(
+            <>
+              {selectedVerse?(
+                <>
+                  <div className="notes-lbl">Note — {activeSurah?.number}:{selectedVerse.numberInSurah}</div>
+                  <textarea className="notes-area" placeholder="Your reflection, observations, or study notes…" value={noteInput} onChange={e=>setNoteInput(e.target.value)}/>
+                  <button className="notes-save-btn" onClick={saveNote}>Save Note</button>
+                  <div className="saved-msg" style={{opacity:noteSaved?1:0}}>✓ Saved</div>
+                </>
+              ):(
+                <div className="panel-empty"><div className="panel-empty-icon">✎</div><div className="panel-empty-text">Select a verse to write study notes</div></div>
+              )}
+              {noteEntries.length>0&&<div style={{marginTop:20}}>
+                <div className="notes-lbl" style={{marginBottom:9}}>All Notes ({noteEntries.length})</div>
+                {noteEntries.map(([key,text])=><div key={key} className="note-entry"><div className="note-entry-ref">{key}</div><div className="note-entry-text">{text}</div></div>)}
+              </div>}
+            </>
+          )}
+
+          {panelTab==="bookmarks"&&(bookmarks.length===0?(
+            <div className="panel-empty"><div className="panel-empty-icon">☆</div><div className="panel-empty-text">Bookmark verses by clicking ☆ Save on any verse</div></div>
+          ):(
+            <>
+              <div className="notes-lbl">{bookmarks.length} Saved Verse{bookmarks.length!==1?"s":""}</div>
+              {bookmarks.map((b,i)=>(
+                <div key={i} className="bmark-item" onClick={async()=>{
+                  const s=surahs.find(s=>s.number===b.surahNum); if(!s) return;
+                  if(activeSurah?.number!==s.number){
+                    await loadSurah(s);
+                    setTimeout(()=>{ const idx=verses.findIndex(v=>v.numberInSurah===b.verseNum); if(idx>=0){selectVerse(verses[idx],idx);scrollToVerse(idx);} },900);
+                  } else { const idx=verses.findIndex(v=>v.numberInSurah===b.verseNum); if(idx>=0){selectVerse(verses[idx],idx);scrollToVerse(idx);} }
+                }}>
+                  <div className="bmark-ref">{b.surahName} · {b.surahNum}:{b.verseNum}</div>
+                  <div className="bmark-ar">{b.arabic}</div>
+                  <div className="bmark-tr">{b.translation}</div>
+                </div>
+              ))}
+            </>
+          ))}
+
+        </div>
+      </div>
+
+      {/* PLAYER */}
+      <div className="player">
+        <div className="player-left">
+          <div className="player-surah">{currentAyah?`${activeSurah?.englishName} · ${activeSurah?.number}:${currentAyah.numberInSurah}`:"No verse playing"}</div>
+          <div className="player-reciter">{reciter.name}</div>
+        </div>
+
+        <div className="player-center">
+          {/* Controls row: prev · play · next · loop · volume */}
+          <div className="player-controls-row">
+            <button className="ctrl-btn" onClick={prevVerse} title="Previous">⏮</button>
+            <button className="play-btn" onClick={togglePlayerPlay} disabled={!activeSurah||verses.length===0}>
+              {playing?"⏸":"▶"}
+            </button>
+            <button className="ctrl-btn" onClick={nextVerse} title="Next">⏭</button>
+            <button className={`loop-btn-sm ${loopVerse?"active":""}`} onClick={()=>setLoopVerse(l=>!l)} title="Loop verse">↻ Loop</button>
+            <div className="vol-row">
+              <span className="vol-icon">🔊</span>
+              <input type="range" min="0" max="1" step="0.01" value={volume} onChange={e=>setVolume(parseFloat(e.target.value))}/>
+            </div>
+          </div>
+          {/* Progress row */}
+          <div className="progress-row">
+            <span className="time-lbl">{fmtTime(audioProgress)}</span>
+            <div className="progress-track" onClick={handleProgressClick}>
+              <div className="progress-fill" style={{width:audioDuration?`${(audioProgress/audioDuration)*100}%`:"0%"}}/>
+            </div>
+            <span className="time-lbl">{fmtTime(audioDuration)}</span>
+          </div>
+        </div>
+
+        <div className="player-right"/>
+      </div>
+
+    </div>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById("root")).render(<App/>);
+</script>
+</body>
+</html>
