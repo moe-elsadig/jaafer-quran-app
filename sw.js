@@ -1,5 +1,7 @@
 const CACHE_NAME = "quran-study-v1";
 const ASSETS_TO_CACHE = [
+    "./",
+    "./index.html",
     "./quran-app_7.html",
     "./manifest.json",
     "https://fonts.googleapis.com/css2?family=Amiri:ital,wght@0,400;0,700;1,400&family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500&display=swap",

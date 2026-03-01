@@ -1,0 +1,7 @@
+# .nojekyll
+
+# This file prevents GitHub Pages from processing the site with Jekyll.
+
+# This is necessary because some files starting with underscores might otherwise be ignored,
+
+# and it speeds up the build process.
