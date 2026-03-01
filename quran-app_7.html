@@ -3,7 +3,10 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<meta name="theme-color" content="#0C0B09"/>
 <title>القرآن الكريم · Quran Study</title>
+<link rel="manifest" href="./manifest.json"/>
+<link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/192/2904/2904975.png"/>
 <link href="https://fonts.googleapis.com/css2?family=Amiri:ital,wght@0,400;0,700;1,400&family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500&display=swap" rel="stylesheet"/>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
@@ -35,6 +38,8 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:'DM San
 #root{height:100vh;}
 
 .app{display:grid;grid-template-columns:297px 1fr 363px;grid-template-rows:53px 1fr 75px;height:100vh;}
+.mobile-nav-toggle{display:none;background:none;border:none;color:var(--gold);font-size:20px;cursor:pointer;padding:0 15px;}
+.mobile-panel-toggle{display:none;background:none;border:none;color:var(--text-dim);font-size:18px;cursor:pointer;padding:0 15px;}
 
 /* TOPBAR */
 .topbar{grid-column:1/-1;background:var(--bg1);border-bottom:1px solid var(--border);display:flex;align-items:center;transition:background .25s,border-color .25s;}
@@ -206,6 +211,73 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:'DM San
 
 input[type=range]{-webkit-appearance:none;height:3px;background:var(--bg3);border-radius:2px;outline:none;width:72px;cursor:pointer;}
 input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:11px;height:11px;border-radius:50%;background:var(--text-mid);cursor:pointer;}
+
+/* ── MOBILE RESPONSIVENESS ── */
+@media (max-width: 1024px) {
+  .app {
+    grid-template-columns: 1fr;
+    grid-template-rows: 53px 1fr 100px;
+  }
+  .sidebar, .panel {
+    display: none;
+    position: fixed;
+    top: 53px;
+    bottom: 100px;
+    left: 0;
+    right: 0;
+    z-index: 100;
+  }
+  .sidebar.mobile-open, .panel.mobile-open {
+    display: flex;
+  }
+  .sidebar { width: 100%; border-right: none; }
+  .panel { width: 100%; border-left: none; }
+  
+  .topbar-logo { width: auto; border-right: none; padding: 0 10px; }
+  .topbar-right, .topbar-settings { display: none; }
+  .mobile-nav-toggle, .mobile-panel-toggle { display: block; }
+  
+  .search-wrap { width: 100%; }
+  .search-bar { height: 28px; }
+
+  .player {
+    flex-wrap: wrap;
+    height: 100px;
+    padding: 10px;
+    gap: 10px;
+  }
+  .player-left {
+    width: 60%;
+    border-right: none;
+    padding: 0;
+  }
+  .player-right { display: none; }
+  .player-center {
+    width: 100%;
+    order: 3;
+    padding: 0;
+  }
+  .progress-row { max-width: none; }
+
+  .verses-container { padding: 0 20px 20px; }
+  .surah-header { padding: 30px 20px; }
+  .verse-arabic { font-size: 24px; line-height: 2; }
+  .verse-translation { font-size: 16px; padding-left: 15px; }
+  .bismillah { font-size: 24px; padding: 20px; }
+  
+  /* Mobile controls for Settings */
+  .mobile-settings-row {
+    display: flex;
+    overflow-x: auto;
+    padding: 8px 15px;
+    background: var(--bg2);
+    border-bottom: 1px solid var(--border);
+    gap: 12px;
+    align-items: center;
+    white-space: nowrap;
+  }
+  .mobile-settings-row::-webkit-scrollbar { display: none; }
+}
 </style>
 </head>
 <body class="dark">
@@ -274,6 +346,8 @@ function App(){
   const [searchResults, setSearchResults] = useState([]);
   const [showSearch,    setShowSearch]    = useState(false);
   const [theme,         setTheme]         = useState(()=>{ const t=LS.get("q_theme","dark"); document.body.className=t; return t; });
+  const [mobileMenu,    setMobileMenu]    = useState(false); // false: main, true: sidebar
+  const [showPanel,     setShowPanel]     = useState(false); // for mobile tafsir/notes layer
 
   const audioRef  = useRef(null);
   const mainRef   = useRef(null);
@@ -442,6 +516,9 @@ function App(){
 
       {/* TOPBAR */}
       <div className="topbar">
+        <button className="mobile-nav-toggle" onClick={()=>{setMobileMenu(!mobileMenu);setShowPanel(false);}}>
+          {mobileMenu ? "✕" : "☰"}
+        </button>
         <div className="topbar-logo"><div className="dot"/><span>القرآن الكريم</span></div>
         <div className="topbar-center">
           <div className="search-wrap">
@@ -492,14 +569,35 @@ function App(){
           <button className={`topbar-btn ${panelTab==="notes"?"active":""}`} onClick={()=>setPanelTab("notes")}>Notes</button>
           <button className={`topbar-btn ${panelTab==="bookmarks"?"active":""}`} onClick={()=>setPanelTab("bookmarks")}>Bookmarks{bookmarks.length>0?` (${bookmarks.length})`:""}</button>
         </div>
+        <button className="mobile-panel-toggle" onClick={()=>{setShowPanel(!showPanel);setMobileMenu(false);}}>
+          {showPanel ? "✕" : (panelTab==="tafsir"?"📜":"✎")}
+        </button>
+      </div>
+
+      {/* MOBILE SETTINGS STRIP */}
+      <div className="mobile-settings-row" style={{display: window.innerWidth <= 1024 ? "flex" : "none"}}>
+         <span className="ts-label">Tafsir:</span>
+         <select className="ts-select" value={tafsirEdition} onChange={e=>setTafsirEdition(e.target.value)}>
+           {TAFSIR_EDITIONS.map(ed=><option key={ed.slug} value={ed.slug}>{ed.label}</option>)}
+         </select>
+         <div className="ts-sep"/>
+         <span className="ts-label">Reciter:</span>
+         <select className="ts-select" value={reciter.id} onChange={e=>setReciter(RECITERS.find(r=>r.id===e.target.value))}>
+           {RECITERS.map(r=><option key={r.id} value={r.id}>{r.name}</option>)}
+         </select>
+         <div className="ts-sep"/>
+         <div className="theme-toggle">
+            <button className={`theme-opt ${theme==="dark"?"active":""}`} onClick={()=>toggleTheme("dark")}>D</button>
+            <button className={`theme-opt ${theme==="light"?"active":""}`} onClick={()=>toggleTheme("light")}>L</button>
+          </div>
       </div>
 
       {/* SIDEBAR */}
-      <div className="sidebar">
+      <div className={`sidebar ${mobileMenu ? "mobile-open" : ""}`}>
         <div className="sidebar-header"><div className="sidebar-label">{surahs.length>0?`${surahs.length} Surahs`:"Loading…"}</div></div>
         <div className="surah-list">
           {surahs.map(s=>(
-            <div key={s.number} className={`surah-item ${activeSurah?.number===s.number?"active":""}`} onClick={()=>loadSurah(s)}>
+            <div key={s.number} className={`surah-item ${activeSurah?.number===s.number?"active":""}`} onClick={()=>{loadSurah(s);setMobileMenu(false);}}>
               <div className="surah-num">{s.number}</div>
               <div className="surah-info">
                 <div className="surah-name">{s.englishName}</div>
@@ -532,7 +630,7 @@ function App(){
               {verses.map((v,idx)=>(
                 <div key={v.number} ref={el=>verseRefs.current[idx]=el}
                   className={`verse-block ${selectedVerse?.idx===idx?"vactive":""} ${currentAyah?.idx===idx?"vplaying":""}`}
-                  onClick={()=>{selectVerse(v,idx);setPanelTab("tafsir");}}>
+                  onClick={()=>{selectVerse(v,idx);setPanelTab("tafsir"); if(window.innerWidth<=1024) setShowPanel(true);}}>
                   <div className="verse-num-row">
                     <div className="verse-num">{v.numberInSurah}</div>
                     <div className="verse-actions">
@@ -556,7 +654,7 @@ function App(){
       </div>
 
       {/* PANEL */}
-      <div className="panel">
+      <div className={`panel ${showPanel ? "mobile-open" : ""}`}>
         <div className="panel-tabs">
           <button className={`panel-tab ${panelTab==="tafsir"?"active":""}`} onClick={()=>setPanelTab("tafsir")}>Tafsir</button>
           <button className={`panel-tab ${panelTab==="notes"?"active":""}`} onClick={()=>setPanelTab("notes")}>Notes</button>
@@ -666,6 +764,15 @@ function App(){
 }
 
 ReactDOM.createRoot(document.getElementById("root")).render(<App/>);
+
+// Register service worker for PWA
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('./sw.js')
+      .then(reg => console.log('SW Registered', reg))
+      .catch(err => console.log('SW Error', err));
+  });
+}
 </script>
 </body>
 </html>
